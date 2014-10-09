@@ -1,0 +1,21 @@
+--- linux-stage.orig/fs/ext4/super.c	2014-10-09 15:35:09.431721763 +0530
++++ linux-stage/fs/ext4/super.c	2014-10-09 15:35:13.559442533 +0530
+@@ -5693,7 +5693,6 @@ EXPORT_SYMBOL(ext4_iget);
+ EXPORT_SYMBOL(ext4_discard_preallocations);
+ EXPORT_SYMBOL(ext4_free_blocks);
+ EXPORT_SYMBOL(ext4_itable_unused_count);
+-EXPORT_SYMBOL(ext4_journal_abort_handle);
+ EXPORT_SYMBOL(ext4_force_commit);
+ EXPORT_SYMBOL(ext4_xattr_get);
+ EXPORT_SYMBOL(ext4_xattr_set_handle);
+--- linux-stage.orig/fs/ext4/ext4_jbd2.c	2014-10-09 15:35:59.573477730 +0530
++++ linux-stage/fs/ext4/ext4_jbd2.c	2014-10-09 15:05:43.703286786 +0530
+@@ -147,6 +147,8 @@ static void ext4_journal_abort_handle(co
+ 	jbd2_journal_abort_handle(handle);
+ }
+ 
++EXPORT_SYMBOL(ext4_journal_abort_handle);
++
+ int __ext4_journal_get_write_access(const char *where, unsigned int line,
+ 				    handle_t *handle, struct buffer_head *bh)
+ {
