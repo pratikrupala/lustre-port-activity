@@ -1,5 +1,5 @@
---- drivers/md/raid5.c.orig	2014-10-13 19:56:31.747450985 +0530
-+++ drivers/md/raid5.c	2014-10-13 19:59:38.824450519 +0530
+--- linux-3.16.3/drivers/md/raid5.c.orig	2014-10-13 19:56:31.747450985 +0530
++++ linux-3.16.3/drivers/md/raid5.c	2014-10-13 20:27:02.298446420 +0530
 @@ -2670,6 +2670,9 @@ static int add_stripe_bio(struct stripe_
  	*bip = bi;
  	raid5_inc_bi_active_stripes(bi);
