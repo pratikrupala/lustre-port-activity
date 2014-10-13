@@ -1,0 +1,22 @@
+--- drivers/md/raid5.c.orig	2014-10-13 19:56:31.747450985 +0530
++++ drivers/md/raid5.c	2014-10-13 19:59:38.824450519 +0530
+@@ -2670,6 +2670,9 @@ static int add_stripe_bio(struct stripe_
+ 	*bip = bi;
+ 	raid5_inc_bi_active_stripes(bi);
+ 
++	if ((bi->bi_rw & REQ_SYNC) && !forwrite)
++		clear_bit(R5_UPTODATE, &sh->dev[dd_idx].flags); /* force to read from disk. */
++
+ 	if (forwrite) {
+ 		/* check if page is covered */
+ 		sector_t sector = sh->dev[dd_idx].sector;
+@@ -4752,6 +4755,9 @@ static void make_request(struct mddev *m
+ 					 bi, 0);
+ 		bio_endio(bi, 0);
+ 	}
++
++	if (bi->bi_rw & REQ_SYNC)
++		md_wakeup_thread(mddev->thread);
+ }
+ 
+ static sector_t raid5_size(struct mddev *mddev, sector_t sectors, int raid_disks);
