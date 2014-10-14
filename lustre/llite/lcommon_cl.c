@@ -702,12 +702,31 @@ int ccc_io_one_lock_index(const struct lu_env *env, struct cl_io *io,
 void ccc_io_update_iov(const struct lu_env *env,
                        struct ccc_io *cio, struct cl_io *io)
 {
+        int i;
         size_t size = io->u.ci_rw.crw_count;
 
-	if (!cl_is_normalio(env, io) || cio->cui_iter == NULL)
+        cio->cui_iov_olen = 0;
+        if (!cl_is_normalio(env, io) || cio->cui_tot_nrsegs == 0)
                 return;
 
-	iov_iter_truncate(cio->cui_iter, size);
+        for (i = 0; i < cio->cui_tot_nrsegs; i++) {
+                struct iovec *iv = &cio->cui_iov[i];
+
+                if (iv->iov_len < size)
+                        size -= iv->iov_len;
+                else {
+                        if (iv->iov_len > size) {
+                                cio->cui_iov_olen = iv->iov_len;
+                                iv->iov_len = size;
+                        }
+                        break;
+                }
+        }
+
+        cio->cui_nrsegs = i + 1;
+	LASSERTF(cio->cui_tot_nrsegs >= cio->cui_nrsegs,
+		 "tot_nrsegs: %lu, nrsegs: %lu\n",
+		 cio->cui_tot_nrsegs, cio->cui_nrsegs);
 }
 
 int ccc_io_one_lock(const struct lu_env *env, struct cl_io *io,
@@ -738,8 +757,30 @@ void ccc_io_advance(const struct lu_env *env,
 	if (!cl_is_normalio(env, io))
 		return;
 
-	iov_iter_reexpand(cio->cui_iter, cio->cui_tot_count -= nob);
+	LASSERT(cio->cui_tot_nrsegs >= cio->cui_nrsegs);
+	LASSERT(cio->cui_tot_count  >= nob);
 
+	cio->cui_iov        += cio->cui_nrsegs;
+	cio->cui_tot_nrsegs -= cio->cui_nrsegs;
+	cio->cui_tot_count  -= nob;
+
+	/* update the iov */
+	if (cio->cui_iov_olen > 0) {
+		struct iovec *iv;
+
+		cio->cui_iov--;
+		cio->cui_tot_nrsegs++;
+		iv = &cio->cui_iov[0];
+		if (io->ci_continue) {
+			iv->iov_base += iv->iov_len;
+			LASSERT(cio->cui_iov_olen > iv->iov_len);
+			iv->iov_len = cio->cui_iov_olen - iv->iov_len;
+		} else {
+			/* restore the iov_len, in case of restart io. */
+			iv->iov_len = cio->cui_iov_olen;
+		}
+		cio->cui_iov_olen = 0;
+	}
 }
 
 /**
