@@ -91,19 +91,8 @@ struct ccc_io {
         /** super class */
         struct cl_io_slice     cui_cl;
         struct cl_io_lock_link cui_link;
-        /**
-         * I/O vector information to or from which read/write is going.
-         */
-        struct iovec *cui_iov;
-        unsigned long cui_nrsegs;
-        /**
-         * Total iov count for left IO.
-         */
-        unsigned long cui_tot_nrsegs;
-        /**
-         * Old length for iov that was truncated partially.
-         */
-        size_t cui_iov_olen;
+
+	struct iov_iter *cui_iter;
         /**
          * Total size for the left IO.
          */
