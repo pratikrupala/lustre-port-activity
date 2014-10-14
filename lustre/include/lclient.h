@@ -94,16 +94,17 @@ struct ccc_io {
         /**
          * I/O vector information to or from which read/write is going.
          */
-        struct iovec *cui_iov;
-        unsigned long cui_nrsegs;
+//        struct iovec *cui_iov;
+//        unsigned long cui_nrsegs;
         /**
          * Total iov count for left IO.
          */
-        unsigned long cui_tot_nrsegs;
+//        unsigned long cui_tot_nrsegs;
         /**
          * Old length for iov that was truncated partially.
          */
-        size_t cui_iov_olen;
+//        size_t cui_iov_olen;
+	  struct iov_iter *cui_iter;
         /**
          * Total size for the left IO.
          */
