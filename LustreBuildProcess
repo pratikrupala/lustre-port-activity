@@ -1,0 +1,35 @@
+If using source rpms of both kernel and lustre then install both rpms, go to kernel source directory and then continue from step 5.
+
+Otherwise get the source code of both lustre and kernel first:
+
+Get Lustre Source code from below link:
+git clone https://github.com/pratikrupala/lustre-port-activity
+
+kernel config file can be found at below path in above downloaded lustre source:
+lustre-port-activity/Kernel_dependencies/.config
+
+Get Kernel code:
+Download vanilla kernel 3.16.3 from below link and copy above config file taken from git link into source directory.
+https://www.kernel.org/pub/linux/kernel/v3.x/linux-3.16.3.tar.gz
+
+1.  cd <kernel_source_tree>
+2.  ln -s <lustre_source_tree>/lustre/kernel_patches/series/3.16-rhel6.series series
+3.  ln -s <lustre_source_tree>/lustre/kernel_patches/patches patches
+4.  quilt push –av
+
+5.  make oldconfig || make menuconfig
+6.  make SUBDIRS=scripts
+7.  make -j 5
+8.  make modules
+9.  make modules_install
+10. make install
+11. make rpm
+12. Install this kernel rpm: rpm -ivh rpm_name
+13. reboot, Boot into new kernel
+
+14. cd <lustre_source_tree>
+15. sh autogen.sh
+16. ./configure --with-linux=<kernel_source_tree>
+17. make rpms
+
+
