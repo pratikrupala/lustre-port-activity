@@ -6,7 +6,7 @@ Get Lustre Source code from below link:
 git clone https://github.com/pratikrupala/lustre-port-activity
 
 kernel config file can be found at below path in above downloaded lustre source:
-lustre-port-activity/Kernel_dependencies/.config
+lustre/kernel_patches/kernel_configs/kernel-3.16.3-3.16-rhel6-x86_64.config
 
 Get Kernel code:
 Download vanilla kernel 3.16.3 from below link and copy above config file taken from git link into source directory.
@@ -15,7 +15,7 @@ https://www.kernel.org/pub/linux/kernel/v3.x/linux-3.16.3.tar.gz
 1.  cd <kernel_source_tree>
 2.  ln -s <lustre_source_tree>/lustre/kernel_patches/series/3.16-rhel6.series series
 3.  ln -s <lustre_source_tree>/lustre/kernel_patches/patches patches
-4.  quilt push –av
+4.  quilt push -av
 
 5.  make oldconfig || make menuconfig
 6.  make SUBDIRS=scripts
