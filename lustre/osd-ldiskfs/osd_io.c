@@ -180,9 +180,15 @@ static void dio_complete_routine(struct bio *bio, int error)
 	/* the check is outside of the cycle for performance reason -bzzz */
 	if (!test_bit(__REQ_WRITE, &bio->bi_rw)) {
 		bio_for_each_segment(bvl, bio, iter) {
+#ifdef HAVE_BVEC_ITER
 			if (likely(error == 0))
-				SetPageUptodate(bvec_iter_page(&bvl, iter));
-			LASSERT(PageLocked(bvec_iter_page(&bvl, iter)));
+				SetPageUptodate(bvl.bv_page);
+			LASSERT(PageLocked(bvl.bv_page));
+#else
+                        if (likely(error == 0))
+                                SetPageUptodate(bvec_iter_page(&bvl, iter));
+                        LASSERT(PageLocked(bvec_iter_page(&bvl, iter)));
+#endif
 		}
 		atomic_dec(&iobuf->dr_dev->od_r_in_flight);
 	} else {
