@@ -21,10 +21,7 @@ git clone git://kernel.ubuntu.com/ubuntu/ubuntu-utopic.git
 Then take out a particlar kernel source by checking out kernel which comes by default in Ubuntu 14.10
 
 1.  cd <kernel_source_tree>
-2.  For vanilla kernel 3.16.3
-	ln -s <lustre_source_tree>/lustre/kernel_patches/series/3.16-rhel6.series series
-    For Ubuntu kernel 3.16.4
-	ln -s <lustre_source_tree>/lustre/kernel_patches/series/3.16-ubuntu14.10.series series
+2.  ln -s <lustre_source_tree>/lustre/kernel_patches/series/3.16-rhel6.series series
 3.  ln -s <lustre_source_tree>/lustre/kernel_patches/patches patches
 4.  quilt push -av
 
