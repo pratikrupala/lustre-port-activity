@@ -3,3 +3,5 @@ lustre/contrib/mpich-1.2.6-lustre.patch usr/share/doc/lustre-dev/contrib
 debian/tmp/usr/include/linux/*		usr/include/linux
 debian/tmp/usr/include/lustre/*		usr/include/lustre
 debian/tmp/usr/lib/*.a			usr/lib
+#The mount_osd_ldiskfs.so file needed while mkfs of lustre devices was not part of any debian package. So added it here
+debian/tmp/usr/lib/lustre/*.so		usr/lib/lustre

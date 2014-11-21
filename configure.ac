@@ -11,7 +11,8 @@ LC_CONFIG_SRCDIR
 
 AC_CANONICAL_SYSTEM
 
-AM_INIT_AUTOMAKE([1.10 tar-ustar -Wno-portability])
+#Add subdir-objects in AM_INIT_AUTOMAKE to avoid warning messages generated while running sh autogen.sh
+AM_INIT_AUTOMAKE([1.10 tar-ustar -Wno-portability subdir-objects])
 AM_MAINTAINER_MODE([enable])
 
 AC_PROG_CC

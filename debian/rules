@@ -32,7 +32,8 @@ endif
 export DH_COMPAT=5
 
 # Module-assistant stuff
-PACKAGE=lustre-client-modules
+# Replace lustre-client-modules with lustre-modules to generate lustre server debian package
+PACKAGE=lustre-modules
 MA_DIR ?= /usr/share/modass
 -include $(MA_DIR)/include/generic.make
 -include $(MA_DIR)/include/common-rules.make
@@ -43,7 +44,8 @@ TOP_DIR:=$(shell pwd)
 #  the lustre build process. This is $(KERNEL_VERSION)
 VERSION=$(shell sed -n -e '1s/.*(\(.*\)) .*/\1/p' debian/changelog)
 #SUPPORTED_KERNELS=2.6.27
-SUPPORTED_KERNELS=2.6.18 2.6.20 2.6.22
+#Support for 3.16.4 kernel is added
+SUPPORTED_KERNELS=3.16.4 2.6.18 2.6.20 2.6.22
 UPVERSION=$(shell echo $VERSION | sed -e 's/-[^-]*$$//')
 #KERNEL_VERSION=2.6.27
 # the kernel version to build all of this with
@@ -64,7 +66,7 @@ UTILS_PKG=lustre-utils
 TESTS_PKG=lustre-tests
 DEV_PKG=lustre-dev
 SOURCE_PKG=lustre-source
-MODS_PKG=lustre-client-modules
+MODS_PKG=lustre-modules
 
 #Build dir
 #BUILDDIR=debian/build
@@ -117,13 +119,11 @@ configure-stamp: autogen-stamp debian/control.main debian/control.modules.in
 		cp build/Makefile $(BUILDDIR)/build/; \
 		cp lustre/contrib/mpich-*.patch $(BUILDDIR)/lustre/contrib/; \
 	fi
+	# configure parameters are changed as infiniband support is needed 
+	# --with-o2ib is kept yes so infiniband from kernel will be used
 	( cd $(BUILDDIR) && \
-	 $(SRCDIR)/configure --disable-dependency-tracking \
-		   --disable-modules \
-		   --disable-snmp \
-		   --disable-client \
-		   --enable-quota \
-		   --disable-server )
+	 $(SRCDIR)/configure --with-linux=$(KSRC) \
+		   --with-o2ib=yes )
 	touch $@
 
 build-arch build-indep: build
@@ -338,15 +338,7 @@ kdist_config: prep-deb-files patch-stamp
 	find . -type f -print0 | xargs -0 touch -r COPYING \;
 	# Doesn't seem possible to only build modules...
 	./configure --with-linux=$(KSRC) \
-	            --disable-server \
-		    --disable-quilt  \
-		    --disable-dependency-tracking \
-		    --disable-doc  \
-		    --disable-utils \
-		    --disable-snmp \
-		    --disable-zerocopy \
-		    --disable-tests \
-		    --enable-quota
+                   --with-o2ib=yes
 
 kdist_configure: kdist_config
 

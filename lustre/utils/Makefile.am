@@ -88,9 +88,11 @@ llverfs_LDADD := $(EXT2FSLIB) $(E2PLIB)
 
 llverdev_LDADD := $(EXT2FSLIB) $(BLKIDLIB)
 
-L_STRING := $(top_builddir)/libcfs/libcfs/user-string.c
-L_IOCTL := $(top_builddir)/libcfs/libcfs/util/l_ioctl.c
-L_KERNELCOMM := $(top_builddir)/libcfs/libcfs/kernel_user_comm.c
+#After adding subdir-objects in configure.ac, $(top_builddir) does not work. So chnaged it to @top_builddir@
+L_STRING := @top_builddir@/libcfs/libcfs/user-string.c
+L_IOCTL := @top_builddir@/libcfs/libcfs/util/l_ioctl.c
+L_KERNELCOMM := @top_builddir@/libcfs/libcfs/kernel_user_comm.c
+
 liblustreapitmp_a_SOURCES = liblustreapi.c liblustreapi_hsm.c \
 			    liblustreapi_nodemap.c lustreapi_internal.h \
 			    liblustreapi_json.c liblustreapi_layout.c \
@@ -98,11 +100,21 @@ liblustreapitmp_a_SOURCES = liblustreapi.c liblustreapi_hsm.c \
 			    $(L_IOCTL) $(L_KERNELCOMM) $(L_STRING)
 
 if UTILS
+# After libcfs.ko is created during lustre modules creation in make debs, remove old files during user space compilation
+# so that user space build process create proper kernel_user_comm.o again
+clean-oldfiles:
+	rm -f $(liblustreapitmp_a_OBJECTS)
+
 # build static and shared lib lustreapi
-liblustreapi.a : liblustreapitmp.a
+liblustreapi.a : clean-oldfiles liblustreapitmp.a
 	rm -f liblustreapi.a liblustreapi.so
-	$(CC) $(LDFLAGS) -shared -o liblustreapi.so `$(AR) -t liblustreapitmp.a`
+#	$(CC) $(LDFLAGS) -shared -o liblustreapi.so `$(AR) -t liblustreapitmp.a`
+#$(AR) -t does not work as expected. So $(liblustreapitmp_a_OBJECTS) is used instead of it explicitly.
+	$(CC) $(LDFLAGS) -shared -o liblustreapi.so $(liblustreapitmp_a_OBJECTS)
 	mv liblustreapitmp.a liblustreapi.a
+# After licfs.ko getting created, older kernel_user_comm.o was creating problems of undefined sysmbols in libcfs.ko. 
+# So clean up is needed.
+	rm -f $(liblustreapitmp_a_OBJECTS)
 
 install-exec-hook: liblustreapi.so
 	@$(NORMAL_INSTALL)
