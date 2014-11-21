@@ -1,3 +1,107 @@
+For Ubuntu 14.10 follow below procedure:
+
+On freshly installed Ubuntu 14.10 follow below stated procedure:
+sudo apt-get install git
+sudo apt-get install build-essential module-assistant
+sudo apt-get install libtool
+sudo apt-get install automake
+sudo apt-get install libreadline-dev debhelper dpatch libsnmp-dev quilt
+sudo apt-get install kernel-package
+Above command will not complete successfully. It can not fetch few packages, so they need to be downloaded seperately from net and installed manually.
+	sudo dpkg -i texlive-latex-extra-doc_2014.20140717-1_all.deb
+	sudo dpkg -i texlive-pictures-doc_2014.20140717-01ubuntu1_all.deb
+	sudo dpkg -i texlive-pstricks-doc_2014.20140717-1_all.deb
+
+First create a directory in oyour working directory.
+	mkdir kernel
+	cd kernel/
+First get the Ubuntu 14.10 kernel source. Name utopic is for Ubuntu 14.10.
+	git clone git://kernel.ubuntu.com/ubuntu/ubuntu-utopic.git
+By default you will have the latest version of the kernel tree, the master tree. 
+You can switch to any previously released kernel version using the release tags. 
+We will take the version which comes with Ubuntu 14.10 by default.
+	git checkout Ubuntu-3.16.0-23.31
+	
+Get Lustre Source code from below link:
+Create some working directory for lustre and go into it
+git clone https://github.com/pratikrupala/lustre-port-activity
+git checkout ubuntu
+cp lustre/kernel_patches/kernel_configs/kernel-3.16.4-3.16-ubuntu14.10-x86_64.config <path_to_kernel_src>/.config
+
+sudo mkdir /usr/src/linux-3.16.4/
+sudo cp -rf kernel/ubuntu-utopic/* /usr/src/linux-3.16.4/
+cd /usr/src/
+sudo ln -s linux-3.16.4 linux
+
+The softlink created above will be used by configure file of lustre, so don't ignore it.
+
+cd /usr/src/linux
+make oldconfig || make menuconfig
+sudo cp /home/calsoft/extra/.config .
+sudo make oldconfig || sudo make menuconfig
+sudo make SUBDIRS=scripts
+
+Above command will suggest to run make prepare
+
+sudo make oldconfig && sudo make prepare
+sudo make SUBDIRS=scripts
+sudo make-kpkg --rootcmd fakeroot --initrd kernel_image kernel_headers
+cd ../
+sudo dpkg -i linux-image-3.16.4_3.16.4-10.00.Custom_amd64.deb
+sudo dpkg -i linux-headers-3.16.4_3.16.4-10.00.Custom_amd64.deb
+
+Reboot the system and boot it in newly installed kernel 3.16.4
+
+Go to directory which contains lustre source
+sh autogen.sh
+./configure --enable-dist
+make dist
+mkdir BUILD
+cd BUILD/
+ln -s ../lustre-2.6.53.tar.gz lustre_2.6.53.orig.tar.gz
+tar xzvf ../lustre-2.6.53.tar.gz
+cd lustre-2.6.53/
+./configure --with-linux=/usr/src/linux --with-o2ib=yes
+sudo make debs
+
+Newly created rpms are placed in debs/ folder in lustre source.
+Install them in below given order:
+sudo dpkg -i lustre-modules-3.16.4_2.6.53-1_amd64.deb
+sudo dpkg -i lustre-utils_2.6.53-1_amd64.deb
+sudo dpkg -i lustre-dev_2.6.53-1_amd64.deb
+sudo dpkg -i lustre-tests_2.6.53-1_amd64.deb
+
+Download e2fsprogs deb package from below location:
+http://web-docs.gsi.de/~tstibor/lustre/lustre-builds/wheezy/redhat-kernel/
+
+sudo dpkg -i --force-overwrite e2fsprogs-1.42.9.wc1.deb
+
+Edit /etc/fstab file as shown below:
+sudo vim /etc/fstab
+From
+UUID=fa7f0c6c-a51c-4cf2-ba61-53923afa951a /               ext4    errors=remount-ro 0       1
+To
+UUID=fa7f0c6c-a51c-4cf2-ba61-53923afa951a /               ext4    errors=remount-ro 0       0
+
+Add three disks in system to act as storage for MGS, MDS and OSS. Suppose they are /dev/sdb, /dev/sdc and /dev/sdd
+Use below command for mkfs and mount of lustre.
+sudo mkfs.lustre --mgs --reformat /dev/sdb
+sudo mkfs.lustre --mdt --fsname=temp --index=0 --reformat --mgsnode=<ip_of_mgs>@tcp0 /dev/sdc
+sudo mkfs.lustre --ost --fsname=temp --index=0 --reformat --mgsnode=<ip_of_mgs>@tcp0 /dev/sdd
+
+sudo mkdir -p /mnt/temp/MGS
+sudo mkdir -p /mnt/temp/MDT/
+sudo mkdir -p /mnt/temp/OSS/
+sudo mkdir -p /mnt/temp/client
+
+sudo mount -t lustre /dev/sdb /mnt/temp/MGS
+sudo mount -t lustre /dev/sdc /mnt/temp/MDT/
+sudo mount -t lustre /dev/sdd /mnt/temp/OSS/
+sudo mount -t lustre <ip_of_mgs>@tcp0:/temp /mnt/temp/client
+
+################################################################################################################################
+
+For RHEL follow below procedure:
 If using source rpms of both kernel and lustre then install both rpms, go to kernel source directory and then continue from step 5.
 
 Otherwise get the source code of both lustre and kernel first:
